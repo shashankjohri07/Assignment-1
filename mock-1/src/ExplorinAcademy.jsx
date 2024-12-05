@@ -82,4 +82,4 @@ const ExploreComponent = ({ name, count, images }) => {
   );
 };
 
-export default ExploreComponent;
+export default ExplorinAcademy;
