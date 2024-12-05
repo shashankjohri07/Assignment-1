@@ -1,85 +1,85 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
+import "./Explore.css";
 
-const ExplorinAcademy = ({ name, count, images }) => {
-  // Component to handle individual images
-  const ImageComponent = ({ url, ready, error }) => {
-    const [imageReady, setImageReady] = useState(ready);
-    const [errorState, setErrorState] = useState(error);
-    const [retryCount, setRetryCount] = useState(0);
+const CircleImage = ({ image, index }) => {
+  const [error, setError] = useState(image.error);
+  const [ready, setReady] = useState(image.ready);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
-    useEffect(() => {
-      if (!imageReady && errorState && retryCount < 3) {
-        const timer = setTimeout(() => {
+  useEffect(() => {
+    let timeout;
+    if (error) {
+      setIsRetrying(true);
+      timeout = setTimeout(() => {
+        if (retryCount < 3) {
           setRetryCount((prev) => prev + 1);
-          // Simulating retry logic (50% success rate)
-          if (Math.random() > 0.5) {
-            setImageReady(true);
-            setErrorState(false);
-          }
-        }, 5000);
-
-        return () => clearTimeout(timer);
-      }
-    }, [retryCount, errorState, imageReady]);
-
-    if (errorState && retryCount >= 3) {
-      return (
-        <div className="image-placeholder error" title="Image failed to load">
-          ⚠
-        </div>
-      );
+          setError(false);
+        } else {
+          setIsRetrying(false);
+        }
+      }, 5000);
+    } else {
+      setIsRetrying(false);
     }
 
-    if (!imageReady) {
-      return (
-        <div className="image-placeholder loading" title="Loading...">
-          ⏳
-        </div>
-      );
-    }
-
-    return <img src={url} alt="Thumbnail" className="circle-image" />;
-  };
-
-  // Check if any image has an error
-  const hasError = images.some((img) => img.error);
+    return () => clearTimeout(timeout);
+  }, [error, retryCount]);
 
   return (
-    <div className="explorin-container">
-      <div className="explorin-content">
-        {/* Image Group */}
-        <div className="image-group">
-          {images.map((image, index) => (
-            <ImageComponent key={index} {...image} />
-          ))}
-          {/* Placeholders for missing images */}
-          {[...Array(Math.max(0, 4 - images.length))].map((_, index) => (
-            <div
-              key={`placeholder-${index}`}
-              className="image-placeholder empty"
-              title="No image available"
-            >
-              +
-            </div>
-          ))}
-        </div>
-
-        {/* Academy Info */}
-        <div className="info">
-          <h3>{name}</h3>
-          <p>{count}+ offline centers</p>
-        </div>
-      </div>
-
-      {/* Error Icon */}
-      {hasError && (
-        <div className="error-icon" title="One or more images failed to load">
-          ⚠
+    <div className="circle-container">
+      {isRetrying && (
+        <div className="retry-overlay">
+          <img
+            src="https://cdn.pixabay.com/animation/2023/08/11/21/18/21-18-05-265_512.gif"
+            className="im"
+          />
         </div>
       )}
+      <div className="circle-content">
+        {error ? (
+          <div className="error-icon">⚠️</div>
+        ) : ready ? (
+          <img
+            src={image.url}
+            alt={`Image ${index + 1}`}
+            className="circle-image"
+            onError={() => setError(true)}
+          />
+        ) : (
+          <div className="placeholder" />
+        )}
+      </div>
     </div>
   );
 };
 
-export default ExplorinAcademy;
+const ExploreComponent = ({ name, count, images }) => {
+  // console.log( name, count, images );
+  const placeholders = Array(4 - images.length).fill({});
+  console.log(placeholders);
+
+  const hasError = images.some((img) => img.error);
+
+  return (
+    <div className="component-container">
+      <div className="image-row">
+        {images.map((image, index) => (
+          <CircleImage key={index} image={image} index={index} />
+        ))}
+       
+
+        {placeholders.map((_, index) => (
+          <div key={`placeholder-${index}`} className="placeholder" />
+        ))}
+      </div>
+      <div className="text-content">
+        <h1>{name}</h1>
+        <p>{count}+ offline centers</p>
+      </div>
+      {hasError && <div className="large-error-icon">⚠️</div>}
+    </div>
+  );
+};
+
+export default ExploreComponent;
